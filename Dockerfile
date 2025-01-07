@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM rust:1.81-slim as builder
+FROM rust:1.81-slim AS builder
 RUN apt update && apt install -y curl gnupg2
 
 RUN curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash
