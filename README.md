@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/lpicanco/prometheus-speedtest-exporter/workflows/build/badge.svg)](https://github.com/lpicanco/prometheus-speedtest-exporter/actions)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=lpicanco_prometheus-speedtest-exporter&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=lpicanco_prometheus-speedtest-exporter)
-[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/lpicanco/prometheus-speedtest-exporter/releases/tag/v0.1.1)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/lpicanco/prometheus-speedtest-exporter/releases/tag/v0.2.0)
 
 A Prometheus exporter that runs speedtest.net measurements and exports the results as metrics.
 
