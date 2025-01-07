@@ -2,6 +2,7 @@
 
 [![Build Status](https://github.com/lpicanco/prometheus-speedtest-exporter/workflows/build/badge.svg)](https://github.com/lpicanco/prometheus-speedtest-exporter/actions)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=lpicanco_prometheus-speedtest-exporter&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=lpicanco_prometheus-speedtest-exporter)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/lpicanco/prometheus-speedtest-exporter/releases/tag/v0.1.1)
 
 A Prometheus exporter that runs speedtest.net measurements and exports the results as metrics.
 
@@ -20,20 +21,21 @@ A Prometheus exporter that runs speedtest.net measurements and exports the resul
 ![Memory Usage](docs/memory_usage.png)
 *Container memory usage example*
 
-## Prerequisites
 
-- [Ookla Speedtest CLI](https://www.speedtest.net/apps/cli) version 1.2.0 or higher
+## Grafana Dashboard
 
-### Installing Speedtest CLI
+A pre-configured Grafana dashboard is available to visualize your internet speed metrics:
 
-```bash
-# Debian/Ubuntu
-curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
-sudo apt-get install speedtest
+[![Grafana Dashboard](docs/grafana_dashboard.png)](https://grafana.com/grafana/dashboards/22634-internet-speed/)
 
-# Other platforms
-Visit https://www.speedtest.net/apps/cli for installation instructions
-```
+You can import this dashboard in two ways:
+
+1. Using the Grafana.com dashboard ID: `22634`
+2. Directly from [Grafana.com marketplace](https://grafana.com/grafana/dashboards/22634-internet-speed/)
+
+The dashboard provides visualizations for:
+- Download and Upload speeds
+- Ping latency statistics
 
 ## Installation
 
@@ -58,6 +60,21 @@ services:
 ```
 
 ### Using pre-built binaries
+
+#### Prerequisites
+
+- [Ookla Speedtest CLI](https://www.speedtest.net/apps/cli) version 1.2.0 or higher
+
+##### Installing Speedtest CLI
+
+```bash
+# Debian/Ubuntu
+curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
+sudo apt-get install speedtest
+
+# Other platforms
+Visit https://www.speedtest.net/apps/cli for installation instructions
+```
 
 Download the latest release for your platform from the [releases page](https://github.com/lpicanco/prometheus-speedtest-exporter/releases).
 
