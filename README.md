@@ -26,12 +26,12 @@ A Prometheus exporter that runs speedtest.net measurements and exports the resul
 
 A pre-configured Grafana dashboard is available to visualize your internet speed metrics:
 
-[![Grafana Dashboard](docs/grafana_dashboard.png)](https://grafana.com/grafana/dashboards/22634-internet-speed/)
+[![Grafana Dashboard](docs/grafana_dashboard.png)](https://grafana.com/grafana/dashboards/22651/)
 
 You can import this dashboard in two ways:
 
-1. Using the Grafana.com dashboard ID: `22634`
-2. Directly from [Grafana.com marketplace](https://grafana.com/grafana/dashboards/22634-internet-speed/)
+1. Using the Grafana.com dashboard ID: `22651`
+2. Directly from [Grafana.com marketplace](https://grafana.com/grafana/dashboards/22651/)
 
 The dashboard provides visualizations for:
 - Download and Upload speeds
