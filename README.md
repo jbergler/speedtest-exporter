@@ -24,7 +24,7 @@ A Prometheus exporter that runs speedtest.net measurements and exports the resul
 
 ## Grafana Dashboard
 
-A pre-configured Grafana dashboard is available to visualize your internet speed metrics:
+A pre-configured Grafana dashboard is available to visualize your internet speed metrics and ping latency:
 
 [![Grafana Dashboard](docs/grafana_dashboard.png)](https://grafana.com/grafana/dashboards/22651/)
 
