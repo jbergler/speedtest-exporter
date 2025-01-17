@@ -21,43 +21,110 @@ A Prometheus exporter that runs speedtest.net measurements and exports the resul
 ![Memory Usage](docs/memory_usage.png)
 *Container memory usage example*
 
+## Quick Start
+
+The fastest way to get started is using the provided docker-compose file which includes:
+- Speedtest exporter (running tests every 30 minutes)
+- Prometheus (pre-configured to scrape the metrics)
+- Grafana (with auto-provisioned dashboard)
+
+```bash
+# Download the docker-compose.yml
+curl -O https://raw.githubusercontent.com/lpicanco/prometheus-speedtest-exporter/main/docker-compose.yml
+
+# Start the stack
+docker-compose up -d
+```
+
+Then access Grafana at http://localhost:3000 (admin/admin) and you'll find:
+- Pre-configured Prometheus data source
+- Auto-provisioned Internet Speed dashboard
+- Real-time metrics for download, upload, and ping latency
 
 ## Grafana Dashboard
 
-A pre-configured Grafana dashboard is available to visualize your internet speed metrics and ping latency:
+A pre-configured Grafana dashboard is available to visualize your internet speed metrics:
 
-[![Grafana Dashboard](docs/grafana_dashboard.png)](https://grafana.com/grafana/dashboards/22651/)
+[![Grafana Dashboard](docs/grafana_dashboard.png)](https://grafana.com/grafana/dashboards/22651-prometheus-speedtest-exporter/)
 
 You can import this dashboard in two ways:
-
 1. Using the Grafana.com dashboard ID: `22651`
-2. Directly from [Grafana.com marketplace](https://grafana.com/grafana/dashboards/22651/)
+2. Directly from [Grafana.com marketplace](https://grafana.com/grafana/dashboards/22651-prometheus-speedtest-exporter/)
 
 The dashboard provides visualizations for:
 - Download and Upload speeds
 - Ping latency statistics
+- Historical performance trends
+- Latency variations
 
 ## Installation
 
 ### Using Docker
 
+For standalone usage:
 ```bash
 docker run -p 9516:9516 ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
 ```
 
-Docker Compose example:
+Complete docker-compose example with Prometheus and Grafana:
 
 ```yaml
 version: '3'
+
 services:
   speedtest-exporter:
     image: ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
-    ports:
-      - "9516:9516"
+    container_name: speedtest-exporter
+    restart: unless-stopped
     environment:
       - TEST_INTERVAL_MINUTES=30
+    ports:
+      - "9516:9516"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
     restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus_data:
+  grafana_data:
 ```
+
+To start the stack:
+```bash
+docker-compose up -d
+```
+
+Then:
+1. Access Grafana at http://localhost:3000 (admin/admin)
+2. The Prometheus data source and Internet Speed dashboard will be automatically configured
 
 ### Using pre-built binaries
 

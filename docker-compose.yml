@@ -1,0 +1,316 @@
+version: '3'
+
+services:
+  speedtest-exporter:
+    image: ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
+    container_name: speedtest-exporter
+    restart: unless-stopped
+    environment:
+      - TEST_INTERVAL_MINUTES=30
+    ports:
+      - "9516:9516"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    depends_on:
+      - prometheus
+    configs:
+      - source: datasources
+        target: /etc/grafana/provisioning/datasources/datasources.yaml
+      - source: dashboards-provider
+        target: /etc/grafana/provisioning/dashboards/dashboards.yaml
+      - source: speedtest-dashboard
+        target: /etc/grafana/provisioning/dashboards/speedtest.json
+
+configs:
+  prometheus:
+    content: |
+      global:
+        scrape_interval: 1m
+        scrape_timeout: 10s
+        evaluation_interval: 1m
+
+      scrape_configs:
+        - job_name: prometheus
+          static_configs:
+            - targets: ['localhost:9090']
+
+        - job_name: speedtest
+          static_configs:
+            - targets: ['speedtest-exporter:9516']
+
+  datasources:
+    content: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          orgId: 1
+          url: http://prometheus:9090
+          isDefault: true
+          version: 1
+          editable: false
+
+  dashboards-provider:
+    content: |
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: true
+          editable: false
+          options:
+            path: /etc/grafana/provisioning/dashboards
+
+  speedtest-dashboard:
+    content: |
+      {
+        "annotations": {
+          "list": []
+        },
+        "editable": true,
+        "fiscalYearStartMonth": 0,
+        "graphTooltip": 0,
+        "id": 1,
+        "links": [],
+        "liveNow": false,
+        "panels": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                },
+                "unit": "bps"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 0
+            },
+            "id": 1,
+            "options": {
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showThresholdLabels": false,
+              "showThresholdMarkers": true
+            },
+            "pluginVersion": "10.0.3",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "PBFA97CFB590B2093"
+                },
+                "editorMode": "code",
+                "expr": "speedtest_download_bandwidth_bytes * 8",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Download Speed",
+            "type": "gauge"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                },
+                "unit": "bps"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 0
+            },
+            "id": 2,
+            "options": {
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showThresholdLabels": false,
+              "showThresholdMarkers": true
+            },
+            "pluginVersion": "10.0.3",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "PBFA97CFB590B2093"
+                },
+                "editorMode": "code",
+                "expr": "speedtest_upload_bandwidth_bytes * 8",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Upload Speed",
+            "type": "gauge"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "ms"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 24,
+              "x": 0,
+              "y": 8
+            },
+            "id": 3,
+            "options": {
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showThresholdLabels": false,
+              "showThresholdMarkers": true
+            },
+            "pluginVersion": "10.0.3",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "PBFA97CFB590B2093"
+                },
+                "editorMode": "code",
+                "expr": "speedtest_ping_latency_seconds * 1000",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Ping Latency",
+            "type": "gauge"
+          }
+        ],
+        "refresh": "1h",
+        "schemaVersion": 38,
+        "style": "dark",
+        "tags": [],
+        "templating": {
+          "list": []
+        },
+        "time": {
+          "from": "now-24h",
+          "to": "now"
+        },
+        "timepicker": {},
+        "timezone": "",
+        "title": "Internet Speed",
+        "uid": "internet_speed",
+        "version": 1,
+        "weekStart": ""
+      }
+
+volumes:
+  prometheus_data:
+  grafana_data: 
