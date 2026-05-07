@@ -5,7 +5,7 @@
 
 ## Docker (Recommended)
 ```bash
-docker run -p 9516:9516 ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
+docker run -p 9516:9516 ghcr.io/jbergler/speedtest-exporter:latest
 ```
 
 ## Binary Installation
@@ -14,8 +14,8 @@ docker run -p 9516:9516 ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
 
 2. Extract and run:
 ```bash
-chmod +x prometheus-speedtest-exporter
-./prometheus-speedtest-exporter
+chmod +x speedtest-exporter
+./speedtest-exporter
 ```
 
 ## Building from Source
@@ -23,9 +23,9 @@ chmod +x prometheus-speedtest-exporter
 1. Install Rust and Cargo
 2. Clone and build:
 ```bash
-git clone https://github.com/lpicanco/prometheus-speedtest-exporter.git
-cd prometheus-speedtest-exporter
+git clone https://github.com/jbergler/speedtest-exporter.git
+cd speedtest-exporter
 cargo build --release
 ```
 
-The binary will be available at `target/release/prometheus-speedtest-exporter` 
+The binary will be available at `target/release/speedtest-exporter` 

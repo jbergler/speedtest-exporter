@@ -29,8 +29,8 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/bin/speedtest /usr/bin/speedtest
-COPY --from=builder /usr/src/app/target/release/prometheus-speedtest-exporter /usr/local/bin
+COPY --from=builder /usr/src/app/target/release/speedtest-exporter /usr/local/bin
 
 EXPOSE 9516
 
-ENTRYPOINT ["prometheus-speedtest-exporter"]
+ENTRYPOINT ["speedtest-exporter"]

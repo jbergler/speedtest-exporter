@@ -1,178 +1,111 @@
-# Prometheus Speedtest Exporter
+# Speedtest Exporter
 
-[![Build Status](https://github.com/lpicanco/prometheus-speedtest-exporter/workflows/build/badge.svg)](https://github.com/lpicanco/prometheus-speedtest-exporter/actions)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=lpicanco_prometheus-speedtest-exporter&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=lpicanco_prometheus-speedtest-exporter)
-[![Version](https://img.shields.io/badge/version-0.2.2-blue.svg)](https://github.com/lpicanco/prometheus-speedtest-exporter/releases/tag/v0.2.2)
+[![Build Status](https://github.com/jbergler/speedtest-exporter/workflows/build/badge.svg)](https://github.com/jbergler/speedtest-exporter/actions)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/jbergler/speedtest-exporter/releases/tag/v0.3.0)
 
-A Prometheus exporter that runs speedtest.net measurements and exports the results as metrics.
+A Prometheus exporter that runs speedtest.net measurements on-demand and exports the results as metrics.
+
+**Note**: This is a fork of [lpicanco/prometheus-speedtest-exporter](https://github.com/lpicanco/prometheus-speedtest-exporter) that changes the behavior from periodic background testing to on-demand API calls.
 
 ## Features
 
-- Periodic speedtest measurements
+- **On-demand speedtest API** - Call `GET /speedtest?server_id=<id>` to run a test and get results immediately
 - Prometheus metrics for:
   - Ping latency (average, low, high)
   - Download performance (bandwidth, bytes, elapsed time, latency)
   - Upload performance (bandwidth, bytes, elapsed time, latency)
-- Configurable test intervals
 - Multi-architecture support (amd64, arm64, armv7)
 - Docker support
-- Minimal resource footprint (<1MiB RAM usage)
-
-![Memory Usage](docs/memory_usage.png)
-*Container memory usage example*
+- Minimal resource footprint
 
 ## Quick Start
 
-The fastest way to get started is using the provided docker-compose file which includes:
-- Speedtest exporter (running tests every 30 minutes)
-- Prometheus (pre-configured to scrape the metrics)
-- Grafana (with auto-provisioned dashboard)
-
-```bash
-# Download the docker-compose.yml
-curl -O https://raw.githubusercontent.com/lpicanco/prometheus-speedtest-exporter/main/docker-compose.yml
-
-# Start the stack
-docker-compose up -d
-```
-
-Then access Grafana at http://localhost:3000 (admin/admin) and you'll find:
-- Pre-configured Prometheus data source
-- Auto-provisioned Internet Speed dashboard
-- Real-time metrics for download, upload, and ping latency
-
-## Grafana Dashboard
-
-A pre-configured Grafana dashboard is available to visualize your internet speed metrics:
-
-[![Grafana Dashboard](docs/grafana_dashboard.png)](https://grafana.com/grafana/dashboards/22651-prometheus-speedtest-exporter/)
-
-You can import this dashboard in two ways:
-1. Using the Grafana.com dashboard ID: `22651`
-2. Directly from [Grafana.com marketplace](https://grafana.com/grafana/dashboards/22651-prometheus-speedtest-exporter/)
-
-The dashboard provides visualizations for:
-- Download and Upload speeds
-- Ping latency statistics
-- Historical performance trends
-- Latency variations
-
-## Installation
-
-### Using Docker
-
-For standalone usage:
-```bash
-docker run -p 9516:9516 ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
-```
-
-Complete docker-compose example with Prometheus and Grafana:
+Example Prometheus `scrape_config`:
 
 ```yaml
-version: '3'
-
-services:
-  speedtest-exporter:
-    image: ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
-    container_name: speedtest-exporter
-    restart: unless-stopped
-    environment:
-      - TEST_INTERVAL_MINUTES=30
-    ports:
-      - "9516:9516"
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    restart: unless-stopped
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus:/etc/prometheus
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    depends_on:
-      - prometheus
-
-volumes:
-  prometheus_data:
-  grafana_data:
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: speedtest
+spec:
+  scrapeInterval: 15m
+  metricsPath: /speedtest
+  staticConfigs:
+    - targets: # speedtest.net server ids from `speedtest -L`
+        - "1234"
+        - "2345"
+        - "3456"
+  relabelings:
+    - action: replace
+      sourceLabels: [__address__]
+      targetLabel: __param_server_id
+    - action: replace
+      sourceLabels: [__param_server_id]
+      targetLabel: instance
+    - action: replace
+      targetLabel: __address__
+      replacement: speedtest-exporter.monitoring.svc.cluster.local:9115
 ```
 
-To start the stack:
-```bash
-docker-compose up -d
-```
+## What's Different in This Fork?
 
-Then:
-1. Access Grafana at http://localhost:3000 (admin/admin)
-2. The Prometheus data source and Internet Speed dashboard will be automatically configured
+This fork changes the architecture from periodic background testing to an on-demand model:
 
-### Using pre-built binaries
-
-#### Prerequisites
-
-- [Ookla Speedtest CLI](https://www.speedtest.net/apps/cli) version 1.2.0 or higher
-
-##### Installing Speedtest CLI
-
-```bash
-# Debian/Ubuntu
-curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
-sudo apt-get install speedtest
-
-# Other platforms
-Visit https://www.speedtest.net/apps/cli for installation instructions
-```
-
-Download the latest release for your platform from the [releases page](https://github.com/lpicanco/prometheus-speedtest-exporter/releases).
-
-### Building from source
-
-```bash
-cargo build --release
-```
+- Runs on demand only, periodic testing comes from your scrape config
+- No metrics history, only serves fresh data
+- More visibility via request logging
 
 ## Configuration
 
 ### Command-line options
 
 ```bash
-prometheus-speedtest-exporter [OPTIONS]
+speedtest-exporter [OPTIONS]
 
 Options:
-    --test-interval-minutes <MINUTES>  Speedtest interval in minutes [env: TEST_INTERVAL_MINUTES=] [default: 60]
-    --http-host <HOST>                 Host to bind to [env: HTTP_HOST=] [default: 0.0.0.0]
-    --http-port <PORT>                 Port for Prometheus metrics endpoint [env: HTTP_PORT=] [default: 9516]
-    -h, --help                         Print help
-    -V, --version                      Print version
+    --http-host <HOST>    Host to bind to [env: HTTP_HOST=] [default: 0.0.0.0]
+    --http-port <PORT>    Port for metrics endpoint [env: HTTP_PORT=] [default: 9516]
+    -h, --help            Print help
+    -V, --version         Print version
 ```
 
 ### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `TEST_INTERVAL_MINUTES` | Interval between speedtests in minutes | `60` |
 | `HTTP_HOST` | Host to bind to | `0.0.0.0` |
 | `HTTP_PORT` | Port for the metrics endpoint | `9516` |
+| `RUST_LOG` | Log level (trace, debug, info, warn, error) | `info` |
+
+### API Endpoints
+
+#### GET /speedtest
+
+Run a speedtest against a specific server.
+
+**Query Parameters:**
+- `server_id` (required): Speedtest server ID
+
+**Example:**
+```bash
+curl "http://localhost:9516/speedtest?server_id=52533"
+```
+
+**Response:** Prometheus text format metrics
+
+**Status Codes:**
+- `200 OK` - Test successful
+- `400 Bad Request` - Missing or empty server_id
+- `500 Internal Server Error` - Speedtest execution failed
+
+#### GET /metrics
+
+Returns any global Prometheus metrics (if configured).
+
+**Example:**
+```bash
+curl "http://localhost:9516/metrics"
+```
 
 ## Metrics
 
@@ -218,62 +151,40 @@ All metrics include the following labels:
 # TYPE speedtest_upload_latency_high_seconds gauge
 ```
 
-## Prometheus Configuration
-
-Add to your `prometheus.yml`:
-
-```yaml
-scrape_configs:
-  - job_name: 'speedtest'
-    static_configs:
-      - targets: ['localhost:9516']
-    scrape_interval: 1h  # Should be greater than or equal to TEST_INTERVAL_MINUTES
-```
-
 ## Development
 
-### Local Setup
+### Running the exporter
 
-1. Install Rust and Cargo
-2. Install development dependencies:
-   ```bash
-   rustup component add clippy rustfmt
-   ```
-3. Run tests:
-   ```bash
-   cargo test
-   ```
-4. Run linting:
-   ```bash
-   cargo clippy
-   ```
+```bash
+# Start the server (listens on port 9516)
+cargo run
 
-### Building for Different Architectures
+# Or with custom host/port
+cargo run -- --http-host 127.0.0.1 --http-port 8080
+```
 
-Supported targets:
-- `x86_64-unknown-linux-gnu` (amd64)
-- `x86_64-unknown-linux-musl` (amd64 static)
-- `aarch64-unknown-linux-gnu` (arm64)
-- `armv7-unknown-linux-gnueabihf` (armv7)
+### Making speedtest requests
 
-## Troubleshooting
+```bash
+# Run a speedtest against a specific server and get Prometheus metrics
+curl "http://localhost:9516/speedtest?server_id=52533"
 
-### Common Issues
-
-1. **"speedtest: command not found"**
-   - Ensure Speedtest CLI is installed and in your PATH
-   - Verify installation using `speedtest --version`
-
-2. **"Error: failed to run speedtest"**
-   - Check if Speedtest CLI has proper permissions
-   - Verify network connectivity
-   - Try running `speedtest` manually to check for issues
+# Response includes metrics:
+# speedtest_ping_latency_seconds{...} 0.01228
+# speedtest_download_bandwidth_bytes{...} 39924051
+# speedtest_upload_bandwidth_bytes{...} 13008272
+# ... and more
+```
 
 ## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Run tests and linting
+3. Run tests and linting:
+   ```bash
+   cargo test
+   cargo clippy
+   ```
 4. Commit your changes (`git commit -m 'Add some amazing feature'`)
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request
@@ -284,4 +195,8 @@ Please report security issues via GitHub security advisories.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details.
+
+## Credits
+
+- Original project: [lpicanco/prometheus-speedtest-exporter](https://github.com/lpicanco/prometheus-speedtest-exporter)

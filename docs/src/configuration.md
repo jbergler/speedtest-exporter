@@ -17,7 +17,7 @@ When using Docker, you can pass environment variables using the `-e` flag:
 docker run -p 9516:9516 \
   -e SPEEDTEST_INTERVAL=15 \
   -e SPEEDTEST_SERVER_ID=1234 \
-  ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
+  ghcr.io/jbergler/speedtest-exporter:latest
 ```
 
 ## Docker Compose Configuration
@@ -26,7 +26,7 @@ In your `docker-compose.yml`:
 ```yaml
 services:
   speedtest-exporter:
-    image: ghcr.io/lpicanco/prometheus-speedtest-exporter:latest
+    image: ghcr.io/jbergler/speedtest-exporter:latest
     environment:
       - SPEEDTEST_INTERVAL=15
       - SPEEDTEST_SERVER_ID=1234
