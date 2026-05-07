@@ -1,7 +1,7 @@
 # Speedtest Exporter
 
 [![Build Status](https://github.com/jbergler/speedtest-exporter/workflows/build/badge.svg)](https://github.com/jbergler/speedtest-exporter/actions)
-[![Version](https://img.shields.io/badge/version-0.2.3-blue.svg)](https://github.com/jbergler/speedtest-exporter/releases/tag/v0.2.3)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/jbergler/speedtest-exporter/releases/tag/v0.3.0)
 
 A Prometheus exporter that runs speedtest.net measurements on-demand and exports the results as metrics.
 
