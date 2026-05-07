@@ -60,7 +60,7 @@ This fork changes the architecture from periodic background testing to an on-dem
 ### Command-line options
 
 ```bash
-prometheus-speedtest-exporter [OPTIONS]
+speedtest-exporter [OPTIONS]
 
 Options:
     --http-host <HOST>    Host to bind to [env: HTTP_HOST=] [default: 0.0.0.0]
