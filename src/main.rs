@@ -13,7 +13,6 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use clap::Parser;
-use dotenv::dotenv;
 use log::{debug, error, info};
 use prometheus::{Encoder, Registry, TextEncoder};
 use serde::Deserialize;
@@ -187,11 +186,10 @@ impl RequestState {
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
     if env::var("RUST_LOG").is_err() {
         env::set_var("RUST_LOG", "info")
     }
-    pretty_env_logger::init();
+    env_logger::init();
 
     let config = Config::parse();
     debug!("Loaded configuration: {:?}", config);
