@@ -1,0 +1,55 @@
+{
+  "type": "result",
+  "timestamp": "2024-09-22T10:00:00Z",
+  "ping": {
+    "jitter": 0.5,
+    "latency": 20.0,
+    "low": 19.5,
+    "high": 21.0
+  },
+  "download": {
+    "bandwidth": 50000000,
+    "bytes": 400000000,
+    "elapsed": 8000,
+    "latency": {
+      "iqm": 30.0,
+      "low": 20.0,
+      "high": 50.0,
+      "jitter": 6.0
+    }
+  },
+  "upload": {
+    "bandwidth": 20000000,
+    "bytes": 200000000,
+    "elapsed": 10000,
+    "latency": {
+      "iqm": 25.0,
+      "low": 15.0,
+      "high": 400.0,
+      "jitter": 15.0
+    }
+  },
+  "packetLoss": 0,
+  "isp": "Other ISP",
+  "interface": {
+    "internalIp": "10.0.10.3",
+    "name": "eth0",
+    "macAddr": "BB:CC:33:44:55:66",
+    "isVpn": false,
+    "externalIp": "5.6.7.8"
+  },
+  "server": {
+    "id": 99999,
+    "host": "speedtest-other.lan",
+    "port": 8080,
+    "name": "Another Server",
+    "location": "Elsewhere",
+    "country": "Otherland",
+    "ip": "44.55.66.77"
+  },
+  "result": {
+    "id": "aaaabbbb-cccc-dddd-eeee-ffffffffffff",
+    "url": "https://www.speedtest.net/result/c/aaaabbbb-cccc-dddd-eeee-ffffffffffff",
+    "persisted": true
+  }
+}

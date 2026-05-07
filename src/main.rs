@@ -1,5 +1,4 @@
 use std::env;
-use std::sync::Arc;
 
 use crate::config::Config;
 use crate::metrics::{register, register_int, FloatGauge, IntGauge};
@@ -8,14 +7,14 @@ use axum::routing::get;
 use axum::Router;
 use axum::{
     body::Body,
-    extract::{Query, State},
+    extract::Query,
     http::{header, StatusCode},
     response::{IntoResponse, Response},
 };
 use clap::Parser;
 use dotenv::dotenv;
 use log::{debug, error, info};
-use prometheus::{Encoder, TextEncoder};
+use prometheus::{Encoder, Registry, TextEncoder};
 use serde::Deserialize;
 use tokio::task::spawn_blocking;
 
@@ -24,6 +23,8 @@ mod metrics;
 mod speedtest;
 
 struct AppState {
+    registry: Registry,
+
     ping_latency_gauge: FloatGauge,
     ping_low_gauge: FloatGauge,
     ping_high_gauge: FloatGauge,
@@ -45,69 +46,87 @@ struct AppState {
 
 impl AppState {
     fn new() -> Self {
+        let registry = Registry::new();
         Self {
             ping_latency_gauge: register(
+                &registry,
                 "speedtest_ping_latency_seconds",
                 "Speedtest ping latency in seconds",
             ),
             ping_low_gauge: register(
+                &registry,
                 "speedtest_ping_low_seconds",
                 "Speedtest ping low in seconds",
             ),
             ping_high_gauge: register(
+                &registry,
                 "speedtest_ping_high_seconds",
                 "Speedtest ping high in seconds",
             ),
 
             download_bytes_gauge: register_int(
+                &registry,
                 "speedtest_download_bytes",
                 "Number of bytes downloaded during speedtest",
             ),
             download_bandwidth_bytes_gauge: register_int(
+                &registry,
                 "speedtest_download_bandwidth_bytes",
                 "Speedtest download bandwidth in bytes per second",
             ),
             download_elapsed_seconds_gauge: register(
+                &registry,
                 "speedtest_download_elapsed_seconds",
                 "Speedtest download elapsed time in seconds",
             ),
             download_latency_iqm_seconds_gauge: register(
+                &registry,
                 "speedtest_download_latency_iqm_seconds",
                 "Speedtest download latency iqm in seconds",
             ),
             download_latency_low_seconds_gauge: register(
+                &registry,
                 "speedtest_download_latency_low_seconds",
                 "Speedtest download latency low in seconds",
             ),
             download_latency_high_seconds_gauge: register(
+                &registry,
                 "speedtest_download_latency_high_seconds",
                 "Speedtest download latency high in seconds",
             ),
 
             upload_bytes_gauge: register_int(
+                &registry,
                 "speedtest_upload_bytes",
                 "Number of bytes uploaded during speedtest",
             ),
             upload_bandwidth_bytes_gauge: register_int(
+                &registry,
                 "speedtest_upload_bandwidth_bytes",
                 "Speedtest upload bandwidth in bytes per second",
             ),
             upload_elapsed_seconds_gauge: register(
+                &registry,
                 "speedtest_upload_elapsed_seconds",
                 "Speedtest upload elapsed time in seconds",
             ),
             upload_latency_iqm_seconds_gauge: register(
+                &registry,
                 "speedtest_upload_latency_iqm_seconds",
                 "Speedtest upload latency iqm in seconds",
             ),
             upload_latency_low_seconds_gauge: register(
+                &registry,
                 "speedtest_upload_latency_low_seconds",
                 "Speedtest upload latency low in seconds",
             ),
             upload_latency_high_seconds_gauge: register(
+                &registry,
                 "speedtest_upload_latency_high_seconds",
                 "Speedtest upload latency high in seconds",
             ),
+
+            registry,
         }
     }
 }
@@ -126,12 +145,9 @@ async fn main() {
     let addr = format!("{}:{}", config.http_host, config.http_port);
     let listener = tokio::net::TcpListener::bind(addr.clone()).await.unwrap();
 
-    let app_state = Arc::new(AppState::new());
-
     let app = Router::new()
         .route("/metrics", get(handle_metrics))
-        .route("/speedtest", get(handle_speedtest))
-        .with_state(app_state);
+        .route("/speedtest", get(handle_speedtest));
 
     info!("🦀Server running at http://{}", &addr);
     axum::serve(listener, app)
@@ -147,10 +163,7 @@ pub struct SpeedtestQuery {
     server_id: String,
 }
 
-async fn handle_speedtest(
-    State(app_state): State<Arc<AppState>>,
-    Query(params): Query<SpeedtestQuery>,
-) -> impl IntoResponse {
+async fn handle_speedtest(Query(params): Query<SpeedtestQuery>) -> impl IntoResponse {
     if params.server_id.is_empty() {
         info!("GET /speedtest - Missing server_id query parameter");
         return Response::builder()
@@ -180,11 +193,12 @@ async fn handle_speedtest(
                 result.ping.latency
             );
 
+            let app_state = AppState::new();
             set_metrics(&app_state, &result);
 
-            // Encode metrics to Prometheus text format
+            // Encode metrics to Prometheus text format from the request-local registry
             let encoder = TextEncoder::new();
-            let metric_families = prometheus::gather();
+            let metric_families = app_state.registry.gather();
             let mut buffer = Vec::new();
             encoder.encode(&metric_families, &mut buffer).unwrap();
 
@@ -281,6 +295,14 @@ mod tests {
     use speedtest::SpeedtestResult;
     use std::fs;
 
+    fn encode_metrics(app_state: &AppState) -> String {
+        let encoder = TextEncoder::new();
+        let metric_families = app_state.registry.gather();
+        let mut buffer = Vec::new();
+        encoder.encode(&metric_families, &mut buffer).unwrap();
+        String::from_utf8(buffer).unwrap()
+    }
+
     #[tokio::test]
     async fn test_speedtest_metrics() {
         // Load and parse test data
@@ -289,16 +311,11 @@ mod tests {
         let result: SpeedtestResult =
             serde_json::from_str(&json_str).expect("Failed to parse test data");
 
-        // Create request-scoped app state
+        // Create request-scoped app state with its own local registry
         let app_state = AppState::new();
         set_metrics(&app_state, &result);
 
-        // Get metrics output
-        let encoder = TextEncoder::new();
-        let metric_families = prometheus::gather();
-        let mut buffer = Vec::new();
-        encoder.encode(&metric_families, &mut buffer).unwrap();
-        let metrics_output = String::from_utf8(buffer).unwrap();
+        let metrics_output = encode_metrics(&app_state);
 
         // Verify expected metrics
         let expected_metrics = [
@@ -314,5 +331,48 @@ mod tests {
                 description
             );
         }
+    }
+
+    #[tokio::test]
+    async fn test_no_metric_leakage_between_requests() {
+        let json1 =
+            fs::read_to_string("tests/test_data.json").expect("Failed to read test data file");
+        let json2 = fs::read_to_string("tests/test_data_2.json")
+            .expect("Failed to read second test data file");
+
+        let result1: SpeedtestResult =
+            serde_json::from_str(&json1).expect("Failed to parse test data");
+        let result2: SpeedtestResult =
+            serde_json::from_str(&json2).expect("Failed to parse second test data");
+
+        // Simulate first request
+        let app_state1 = AppState::new();
+        set_metrics(&app_state1, &result1);
+        let output1 = encode_metrics(&app_state1);
+
+        // Simulate second request
+        let app_state2 = AppState::new();
+        set_metrics(&app_state2, &result2);
+        let output2 = encode_metrics(&app_state2);
+
+        // First response must contain server 1 labels and must NOT contain server 2 labels
+        assert!(
+            output1.contains("server_name=\"Virtual Machines\""),
+            "First response should contain server 1 name"
+        );
+        assert!(
+            !output1.contains("server_name=\"Another Server\""),
+            "First response must not contain server 2 name"
+        );
+
+        // Second response must contain server 2 labels and must NOT contain server 1 labels
+        assert!(
+            output2.contains("server_name=\"Another Server\""),
+            "Second response should contain server 2 name"
+        );
+        assert!(
+            !output2.contains("server_name=\"Virtual Machines\""),
+            "Second response must not contain server 1 name"
+        );
     }
 }
