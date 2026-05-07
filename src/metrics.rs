@@ -1,18 +1,24 @@
 use crate::speedtest::SpeedtestResult;
 use prometheus::core::{Atomic, AtomicF64, AtomicI64, GenericGaugeVec};
-use prometheus::{register_gauge_vec, register_int_gauge_vec};
+use prometheus::{GaugeVec, IntGaugeVec, Opts, Registry};
 
 pub type IntGauge = Gauge<AtomicI64>;
 pub type FloatGauge = Gauge<AtomicF64>;
 
 pub struct Gauge<T: Atomic>(GenericGaugeVec<T>);
 
-pub fn register_int(name: &str, help: &str) -> IntGauge {
-    Gauge(register_int_gauge_vec!(name, help, &["server_name", "server_id", "isp"]).unwrap())
+pub fn register_int(registry: &Registry, name: &str, help: &str) -> IntGauge {
+    let gauge =
+        IntGaugeVec::new(Opts::new(name, help), &["server_name", "server_id", "isp"]).unwrap();
+    registry.register(Box::new(gauge.clone())).unwrap();
+    Gauge(gauge)
 }
 
-pub fn register(name: &str, help: &str) -> FloatGauge {
-    Gauge(register_gauge_vec!(name, help, &["server_name", "server_id", "isp"]).unwrap())
+pub fn register(registry: &Registry, name: &str, help: &str) -> FloatGauge {
+    let gauge =
+        GaugeVec::new(Opts::new(name, help), &["server_name", "server_id", "isp"]).unwrap();
+    registry.register(Box::new(gauge.clone())).unwrap();
+    Gauge(gauge)
 }
 
 impl<T: Atomic> Gauge<T> {
