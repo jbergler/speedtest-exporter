@@ -125,8 +125,8 @@ mod tests {
 
     #[test]
     fn test_speedtest_result_from_json() {
-        let json_str = fs::read_to_string("tests/test_data.json")
-            .expect("Failed to read test data file");
+        let json_str =
+            fs::read_to_string("tests/test_data.json").expect("Failed to read test data file");
 
         let result = SpeedtestResult::from_json(&json_str);
 

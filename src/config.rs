@@ -3,10 +3,6 @@ use clap::Parser;
 #[derive(Parser, Debug, Clone, Default)]
 #[command(author, version, about, long_about = None)]
 pub struct Config {
-    /// Speedtest interval in minutes (can also be set via TEST_INTERVAL_MINUTES)
-    #[arg(long, env = "TEST_INTERVAL_MINUTES", default_value_t = 60)]
-    pub test_interval_minutes: u64,
-
     /// Host to bind to (can also be set via HTTP_HOST)
     #[arg(long, env = "HTTP_HOST", default_value = "0.0.0.0")]
     pub http_host: String,
