@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM rust:1.95-slim AS builder
+FROM rust:1.95-slim-trixie AS builder
 RUN apt update && apt install -y curl gnupg2
 
 RUN curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash
@@ -23,7 +23,7 @@ RUN touch src/main.rs
 RUN cargo build --release
 
 # Stage 2: Create the final image
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 # Install necessary dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
