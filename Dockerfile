@@ -26,7 +26,9 @@ RUN cargo build --release
 FROM debian:bookworm-slim
 
 # Install necessary dependencies
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/bin/speedtest /usr/bin/speedtest
 COPY --from=builder /usr/src/app/target/release/speedtest-exporter /usr/local/bin
