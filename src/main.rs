@@ -1,4 +1,5 @@
 use std::env;
+use std::sync::Arc;
 
 use crate::config::Config;
 use crate::metrics::{register, register_int, FloatGauge, IntGauge};
@@ -7,7 +8,7 @@ use axum::routing::get;
 use axum::Router;
 use axum::{
     body::Body,
-    extract::Query,
+    extract::{Query, State},
     http::{header, StatusCode},
     response::{IntoResponse, Response},
 };
@@ -125,9 +126,12 @@ async fn main() {
     let addr = format!("{}:{}", config.http_host, config.http_port);
     let listener = tokio::net::TcpListener::bind(addr.clone()).await.unwrap();
 
+    let app_state = Arc::new(AppState::new());
+
     let app = Router::new()
         .route("/metrics", get(handle_metrics))
-        .route("/speedtest", get(handle_speedtest));
+        .route("/speedtest", get(handle_speedtest))
+        .with_state(app_state);
 
     info!("🦀Server running at http://{}", &addr);
     axum::serve(listener, app)
@@ -143,7 +147,10 @@ pub struct SpeedtestQuery {
     server_id: String,
 }
 
-async fn handle_speedtest(Query(params): Query<SpeedtestQuery>) -> impl IntoResponse {
+async fn handle_speedtest(
+    State(app_state): State<Arc<AppState>>,
+    Query(params): Query<SpeedtestQuery>,
+) -> impl IntoResponse {
     if params.server_id.is_empty() {
         info!("GET /speedtest - Missing server_id query parameter");
         return Response::builder()
@@ -173,8 +180,6 @@ async fn handle_speedtest(Query(params): Query<SpeedtestQuery>) -> impl IntoResp
                 result.ping.latency
             );
 
-            // Create request-scoped AppState with gauges
-            let app_state = AppState::new();
             set_metrics(&app_state, &result);
 
             // Encode metrics to Prometheus text format
