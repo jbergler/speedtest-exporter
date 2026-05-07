@@ -1,8 +1,8 @@
 site_name: Prometheus Speedtest Exporter
 site_description: A Prometheus exporter that runs speedtest.net measurements and exports the results as metrics
-site_url: https://lpicanco.github.io/prometheus-speedtest-exporter
-repo_url: https://github.com/lpicanco/prometheus-speedtest-exporter
-repo_name: lpicanco/prometheus-speedtest-exporter
+site_url: https://jbergler.github.io/speedtest-exporter
+repo_url: https://github.com/jbergler/speedtest-exporter
+repo_name: jbergler/speedtest-exporter
 
 docs_dir: src
 site_dir: ../site
@@ -39,9 +39,9 @@ extra:
   generator: false
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/lpicanco/prometheus-speedtest-exporter
+      link: https://github.com/jbergler/speedtest-exporter
     - icon: fontawesome/brands/docker
-      link: https://github.com/lpicanco/prometheus-speedtest-exporter/pkgs/container/prometheus-speedtest-exporter
+      link: https://github.com/jbergler/speedtest-exporter/pkgs/container/speedtest-exporter
 
 nav:
   - Home: index.md
