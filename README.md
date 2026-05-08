@@ -180,6 +180,26 @@ curl "http://localhost:9516/speedtest?server_id=52533"
 # ... and more
 ```
 
+### Docker image build
+
+The Docker image now uses a minimal Alpine runtime and builds a static musl exporter binary.
+The Ookla CLI is installed directly from official tarballs with pinned SHA256 checksums, without apt or packagecloud bootstrap scripts.
+
+```bash
+# Build local amd64 image
+docker buildx build --platform linux/amd64 --load -t speedtest-exporter:test .
+
+# Build local arm64 image
+docker buildx build --platform linux/arm64 --load -t speedtest-exporter:test-arm64 .
+```
+
+To update the Ookla CLI version, edit [Dockerfile](Dockerfile):
+
+1. Update `OOKLA_VERSION`.
+2. Download both architecture tarballs from `https://install.speedtest.net/app/cli/`.
+3. Recompute and update `OOKLA_SHA256_AMD64` and `OOKLA_SHA256_ARM64`.
+4. Rebuild both amd64 and arm64 images to verify checksums and startup.
+
 ## Contributing
 
 1. Fork the repository
