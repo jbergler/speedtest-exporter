@@ -31,8 +31,6 @@ jobs:
             os: ubuntu-latest
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-          - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -46,12 +44,6 @@ jobs:
         uses: taiki-e/setup-cross-toolchain-action@v1
         with:
           target: ${{ matrix.target }}
-      
-      - name: Install musl tools
-        if: matrix.target == 'x86_64-unknown-linux-musl'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools
       
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
