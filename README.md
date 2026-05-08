@@ -16,7 +16,7 @@ A Prometheus exporter that runs speedtest.net measurements on-demand and exports
   - Upload performance (bandwidth, bytes, elapsed time, latency)
 - Multi-architecture support (amd64, arm64, armv7)
 - Docker support
-- Minimal resource footprint
+- Minimal resource footprint (1.2MB of memory at idle)
 
 ## Quick Start
 
