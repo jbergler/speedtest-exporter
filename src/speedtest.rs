@@ -63,11 +63,11 @@ impl TestResult {
 pub struct Server {
     pub id: u64,
     pub name: String,
-    location: String,
-    country: String,
-    host: String,
-    port: u16,
-    ip: String,
+    pub location: String,
+    pub country: String,
+    pub host: String,
+    pub port: u16,
+    pub ip: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -144,6 +144,8 @@ mod tests {
         assert_eq!(speedtest_result.download.elapsed_seconds(), 7.6);
         assert_eq!(speedtest_result.upload.bandwidth, 13008272);
         assert_eq!(speedtest_result.server.name, "Virtual Machines");
+        assert_eq!(speedtest_result.server.location, "Zion");
+        assert_eq!(speedtest_result.server.country, "Matrix");
         assert_eq!(speedtest_result.isp, "Test ISP");
     }
 

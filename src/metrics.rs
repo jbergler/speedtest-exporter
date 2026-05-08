@@ -7,16 +7,22 @@ pub type FloatGauge = Gauge<AtomicF64>;
 
 pub struct Gauge<T: Atomic>(GenericGaugeVec<T>);
 
+const LABEL_NAMES: &[&str] = &[
+    "server_name",
+    "server_id",
+    "server_location",
+    "server_country",
+    "isp",
+];
+
 pub fn register_int(registry: &Registry, name: &str, help: &str) -> IntGauge {
-    let gauge =
-        IntGaugeVec::new(Opts::new(name, help), &["server_name", "server_id", "isp"]).unwrap();
+    let gauge = IntGaugeVec::new(Opts::new(name, help), LABEL_NAMES).unwrap();
     registry.register(Box::new(gauge.clone())).unwrap();
     Gauge(gauge)
 }
 
 pub fn register(registry: &Registry, name: &str, help: &str) -> FloatGauge {
-    let gauge =
-        GaugeVec::new(Opts::new(name, help), &["server_name", "server_id", "isp"]).unwrap();
+    let gauge = GaugeVec::new(Opts::new(name, help), LABEL_NAMES).unwrap();
     registry.register(Box::new(gauge.clone())).unwrap();
     Gauge(gauge)
 }
@@ -26,6 +32,8 @@ impl<T: Atomic> Gauge<T> {
         let values = &[
             speedtest_result.server.name.as_str(),
             &format!("{}", speedtest_result.server.id),
+            speedtest_result.server.location.as_str(),
+            speedtest_result.server.country.as_str(),
             speedtest_result.isp.as_str(),
         ];
         self.0.with_label_values(values).set(value);

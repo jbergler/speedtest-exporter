@@ -309,9 +309,9 @@ mod tests {
         let metrics_output = String::from_utf8(request_state.encode()).unwrap();
 
         let expected_metrics = [
-            ("speedtest_ping_latency_seconds{isp=\"Test ISP\",server_id=\"52533\",server_name=\"Virtual Machines\"} 0.01228", "ping latency"),
-            ("speedtest_download_bandwidth_bytes{isp=\"Test ISP\",server_id=\"52533\",server_name=\"Virtual Machines\"} 39924051", "download bandwidth"),
-            ("speedtest_upload_bandwidth_bytes{isp=\"Test ISP\",server_id=\"52533\",server_name=\"Virtual Machines\"} 13008272", "upload bandwidth"),
+            ("speedtest_ping_latency_seconds{isp=\"Test ISP\",server_country=\"Matrix\",server_id=\"52533\",server_location=\"Zion\",server_name=\"Virtual Machines\"} 0.01228", "ping latency"),
+            ("speedtest_download_bandwidth_bytes{isp=\"Test ISP\",server_country=\"Matrix\",server_id=\"52533\",server_location=\"Zion\",server_name=\"Virtual Machines\"} 39924051", "download bandwidth"),
+            ("speedtest_upload_bandwidth_bytes{isp=\"Test ISP\",server_country=\"Matrix\",server_id=\"52533\",server_location=\"Zion\",server_name=\"Virtual Machines\"} 13008272", "upload bandwidth"),
         ];
 
         for (metric, description) in expected_metrics {
@@ -348,8 +348,24 @@ mod tests {
             "First response should contain server 1 name"
         );
         assert!(
+            output1.contains("server_location=\"Zion\""),
+            "First response should contain server 1 location"
+        );
+        assert!(
+            output1.contains("server_country=\"Matrix\""),
+            "First response should contain server 1 country"
+        );
+        assert!(
             !output1.contains("server_name=\"Another Server\""),
             "First response must not contain server 2 name"
+        );
+        assert!(
+            !output1.contains("server_location=\"Elsewhere\""),
+            "First response must not contain server 2 location"
+        );
+        assert!(
+            !output1.contains("server_country=\"Otherland\""),
+            "First response must not contain server 2 country"
         );
 
         assert!(
@@ -357,8 +373,24 @@ mod tests {
             "Second response should contain server 2 name"
         );
         assert!(
+            output2.contains("server_location=\"Elsewhere\""),
+            "Second response should contain server 2 location"
+        );
+        assert!(
+            output2.contains("server_country=\"Otherland\""),
+            "Second response should contain server 2 country"
+        );
+        assert!(
             !output2.contains("server_name=\"Virtual Machines\""),
             "Second response must not contain server 1 name"
+        );
+        assert!(
+            !output2.contains("server_location=\"Zion\""),
+            "Second response must not contain server 1 location"
+        );
+        assert!(
+            !output2.contains("server_country=\"Matrix\""),
+            "Second response must not contain server 1 country"
         );
     }
 }
