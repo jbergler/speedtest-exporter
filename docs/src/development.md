@@ -100,17 +100,20 @@ docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t your-regi
 
 ## Release Process
 
-1. Update version in `Cargo.toml`
-2. Create and push a new tag:
+1. Create and push a new tag:
    ```bash
-   git tag -a v0.2.3 -m "Release v0.2.3"
-   git push origin v0.2.3
+   git tag -a v0.3.1 -m "Release v0.3.1"
+   git push origin v0.3.1
    ```
-3. The GitHub Actions workflow will automatically:
+2. The GitHub Actions workflow will automatically:
    - Create a GitHub release
    - Build and upload binaries for all supported architectures
    - Build and push Docker images
    - Deploy documentation updates
+
+Release builds derive the application version from the Git tag (for example,
+`v0.3.1` becomes `0.3.1` inside the binary). Local builds default to `0.0.0`
+unless `APP_VERSION` is explicitly set.
 
 ## Contributing
 

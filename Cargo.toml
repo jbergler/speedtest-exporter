@@ -1,8 +1,9 @@
 [package]
 name = "speedtest-exporter"
-version = "0.3.0"
+version = "0.0.0"
 edition = "2021"
 rust-version = "1.85"
+build = "build.rs"
 
 [dependencies]
 clap = { version = "4.5.18", features = ["derive", "env"] }

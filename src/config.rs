@@ -1,7 +1,9 @@
 use clap::Parser;
 
+const APP_VERSION: &str = env!("APP_BUILD_VERSION");
+
 #[derive(Parser, Debug, Clone, Default)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version = APP_VERSION, about, long_about = None)]
 pub struct Config {
     /// Host to bind to (can also be set via HTTP_HOST)
     #[arg(long, env = "HTTP_HOST", default_value = "0.0.0.0")]

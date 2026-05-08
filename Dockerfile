@@ -14,7 +14,8 @@ RUN cargo chef cook --recipe-path recipe.json --release
 
 # Stage 4: Build the application
 COPY . .
-RUN cargo build --release
+ARG APP_VERSION=0.0.0
+RUN APP_VERSION=${APP_VERSION} cargo build --release
 
 # Stage 5: Install speedtest CLI and runtime image
 FROM debian:trixie-slim
