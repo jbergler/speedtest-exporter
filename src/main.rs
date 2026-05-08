@@ -236,7 +236,10 @@ async fn handle_speedtest(
         params.server_id
     );
 
-    match spawn_blocking(run_speedtest)
+    let server_id = params.server_id;
+    let speedtest_server_id = server_id.clone();
+
+    match spawn_blocking(move || run_speedtest(&speedtest_server_id))
         .await
         .expect("Failed to spawn task")
     {
@@ -265,7 +268,7 @@ async fn handle_speedtest(
         Err(e) => {
             error!(
                 "GET /speedtest - Speedtest failed for server_id {}: {}",
-                params.server_id, e
+                server_id, e
             );
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)

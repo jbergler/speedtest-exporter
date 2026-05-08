@@ -85,10 +85,12 @@ impl SpeedtestResult {
     }
 }
 
-pub fn run_speedtest() -> Result<SpeedtestResult, std::io::Error> {
-    debug!("Running speedtest");
+pub fn run_speedtest(server_id: &str) -> Result<SpeedtestResult, std::io::Error> {
+    debug!("Running speedtest with server_id={}", server_id);
     let output = Command::new("speedtest")
         .arg("--format=json")
+        .arg("--server-id")
+        .arg(server_id)
         .arg("--accept-license")
         .arg("--accept-gdpr")
         .output()?;
