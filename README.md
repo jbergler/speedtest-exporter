@@ -28,13 +28,14 @@ kind: ScrapeConfig
 metadata:
   name: speedtest
 spec:
-  scrapeInterval: 15m
+  scrapeInterval: 1h
+  scrapeTimeout: 3m
   metricsPath: /speedtest
   staticConfigs:
-    - targets: # speedtest.net server ids from `speedtest -L`
-        - "1234"
-        - "2345"
-        - "3456"
+    - targets: # server id's from `speedtest -L`
+        - "28463" # Chorus Fibre Lab
+        - "17618" # Vocus Sydney
+        - "37708" # Unlimited Fibre NYC
   relabelings:
     - action: replace
       sourceLabels: [__address__]
@@ -44,7 +45,10 @@ spec:
       targetLabel: instance
     - action: replace
       targetLabel: __address__
-      replacement: speedtest-exporter.monitoring.svc.cluster.local:9115
+      replacement: speedtest-exporter.monitoring.svc.cluster.local:9516
+  metricRelabelings:
+    - action: labeldrop
+      regex: (pod|instance)
 ```
 
 ## What's Different in This Fork?

@@ -23,7 +23,7 @@ FROM debian:trixie-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl gnupg2 && \
     curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash && \
-    apt-get install -y speedtest && \
+    apt-get install --no-install-recommends -y speedtest && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/speedtest-exporter /usr/local/bin/
